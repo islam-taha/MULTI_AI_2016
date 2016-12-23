@@ -115,6 +115,7 @@ class MultiAgentSearchAgent(Agent):
     self.evaluationFunction = util.lookup(evalFn, globals())
     self.depth = int(depth)
 
+
 class MinimaxAgent(MultiAgentSearchAgent):
   """
     Returns the minimax action from the current gameState using self.depth
@@ -198,7 +199,7 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
     self.INF = 1000000000000000000000000
 
     def max_score(gameState, alpha, beta, depth, ghosts):
-      if gameState.isWin() or gameState.isLose() or (depth == 0):
+      if gameState.isWin() or gameState.isLose() or depth == self.depth:
         return self.evaluationFunction(gameState)
 
       totalLegalActions = gameState.getLegalActions(0)
@@ -214,8 +215,7 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
       return value
 
     def min_score(gameState, alpha, beta, depth, agentNumber, ghosts):
-
-      if gameState.isWin() or gameState.isLose() or (depth == 0):
+      if gameState.isWin() or gameState.isLose() or depth == self.depth:
         return self.evaluationFunction(gameState)
 
       value = self.INF
@@ -223,7 +223,7 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
       if agentNumber == ghosts:
         for move in totalLegalActions:
           value = min(value, max_score(gameState.generateSuccessor(
-              agentNumber, move), alpha, beta, depth - 1, ghosts))
+              agentNumber, move), alpha, beta, depth + 1, ghosts))
           if value < alpha:
             return value
           beta = min(beta, value)
@@ -236,16 +236,15 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
           beta = min(beta, value)
       return value
 
-    totalLegalActions = gameState.getLegalActions(0)
     pq = util.PriorityQueue()
     bestAction = "Stop"
     alpha = -self.INF
     score = -self.INF
     beta = self.INF
-    for move in totalLegalActions:
+    for move in gameState.getLegalActions(0):
       cur_score = score
       score = min_score(gameState.generateSuccessor(
-          0, move), alpha, beta, self.depth, 1, gameState.getNumAgents() - 1)
+          0, move), alpha, beta, 0, 1, gameState.getNumAgents() - 1)
       if score > cur_score:
         bestAction = move
       if score > beta:
@@ -255,6 +254,7 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
 
     while not pq.isEmpty():
       bestAction = pq.pop()
+      
     return bestAction
 
     util.raiseNotDefined()
