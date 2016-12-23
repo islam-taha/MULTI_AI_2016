@@ -236,11 +236,8 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
           beta = min(beta, value)
       return value
 
-    pq = util.PriorityQueue()
-    bestAction = "Stop"
-    alpha = -self.INF
-    score = -self.INF
-    beta = self.INF
+    bestAction, pq = "Stop", []
+    alpha, beta, score = -self.INF, self.INF, -self.INF
     for move in gameState.getLegalActions(0):
       cur_score = score
       score = min_score(gameState.generateSuccessor(
@@ -250,14 +247,9 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
       if score > beta:
         return bestAction
       alpha = max(alpha, score)
-      pq.push(move, score)
+      pq.append((score, move))
 
-    while not pq.isEmpty():
-      bestAction = pq.pop()
-      
-    return bestAction
-
-    util.raiseNotDefined()
+    return sorted(pq, key=lambda tup: tup[0])[-1][1]
 
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
