@@ -115,7 +115,6 @@ class MultiAgentSearchAgent(Agent):
     self.evaluationFunction = util.lookup(evalFn, globals())
     self.depth = int(depth)
 
-
 class MinimaxAgent(MultiAgentSearchAgent):
   """
     Returns the minimax action from the current gameState using self.depth
@@ -133,6 +132,58 @@ class MinimaxAgent(MultiAgentSearchAgent):
     gameState.getNumAgents():
       Returns the total number of agents in the game
   """
+
+  def getAction(self, gameState):
+    # start at depth 1, with pacman agent (indexed as 0)
+    return self.minMaxSearch(gameState, 1, 0)
+
+  def minMaxSearch(self, gameState, currentDepth, agentIndex):
+    # check if the game ended.
+    if currentDepth > self.depth or gameState.isWin() or gameState.isLose():
+      return self.evaluationFunction(gameState)  # who won
+
+    # get legal moves based on the current agent.
+    # legal moves for pacman differ from the legal moves of ghosts.
+    legalMoves = [action for action in gameState.getLegalActions(
+        agentIndex) if action != Directions.STOP]
+
+    # update depth and give the turn to another agent.
+    # we have 3 agents indexed as [0, 1, 2] the 0th agent is the pacman
+    # player.
+    nextDepth = currentDepth + \
+        (1 if (agentIndex + 1) >= gameState.getNumAgents() else 0)
+    nextIndex = (agentIndex + 1) % gameState.getNumAgents()
+
+    # go to your successors.
+    results = [
+        self.minMaxSearch(
+            gameState.generateSuccessor(
+                agentIndex,
+                action),
+            nextDepth,
+            nextIndex) for action in legalMoves]
+
+    # if we are at the parent node we need to return the required actions
+    # to be performed.
+    if agentIndex == 0 and currentDepth == 1:
+      # chose one of the best sloutions.
+      bestMove = max(results)
+      bestIndices = [
+          index for index in range(
+              len(results)) if results[index] == bestMove]
+      chosenIndex = random.choice(bestIndices)
+      return legalMoves[chosenIndex]
+
+    # if we are at any level but the first one we check
+    # if the current player is tha pacman w perform the MAX nodes to chose the optimal solution.
+    # otherwise we perform the MIN nodes to get the optimal solution.
+    if agentIndex == 0:  # pacman turn.
+      bestMove = max(results)
+    else:
+      bestMove = min(results)
+
+    # return chosen best move. :D
+    return bestMove
 
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
